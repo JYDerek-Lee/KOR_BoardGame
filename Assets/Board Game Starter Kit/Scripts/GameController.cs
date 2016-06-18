@@ -6,14 +6,13 @@ using BoardGameKit;
 
 public class GameController : MonoBehaviour
 {
-	[Range(1, 4)]
+	[Range(1, 2)]
 	public int playerCount; 
-	[Range(1, 3)]
+	[Range(0, 1)]
 	public int cpuCount;
 
 	// the 4 Player Positions on the Fields
-	Vector3[] playerSlots = new Vector3[]
-	{
+	Vector3[] playerSlots = new Vector3[]{
 		new Vector3(-0.4f,  0.4f), // upper left
 		new Vector3( 0.4f,  0.4f), // upper right
 		new Vector3(-0.4f, -0.4f), // lower left
@@ -297,6 +296,69 @@ public class GameController : MonoBehaviour
 	}
 
 	// Move the current Player to the target Position field by field
+	IEnumerator moveForwardsWant (Player gamer, int dicedNumber){
+		isGamerMoving = true;
+
+		// get the field the player is currently on
+		int currentField = gamer.CurrentFieldID;
+
+		if (currentField + dicedNumber < field.Count) {
+			// if diced a 4 loop 4 times
+			for (int i = 0; i < dicedNumber; i++) {
+				if (moveSound != null)
+					GetComponent<AudioSource> ().PlayOneShot (moveSound);
+				/*
+				float t = 0f;
+				
+				// increase the start- and endposition each iteration
+				// startposition represents the field the player is on
+				// endposition is always one field ahead of the players field
+				// to make it look like the player moves one field at the time
+				Vector3 startPosition = field[(currentField + i)].transform.position + playerSlots[gamer.ID];
+				Vector3 endPosition = field[(currentField + i + 1)].transform.position + playerSlots[gamer.ID];
+
+				gamer.transform.position = Vector3.Lerp (startPosition, endPosition, 0);
+
+				
+				// lerp to the next field
+				while (t < 1f) {
+					t += Time.deltaTime * 4f;
+
+					gamer.transform.position = Vector3.Lerp (startPosition, endPosition, t);
+
+					yield return null;
+				}
+				 
+				yield return null;
+				*/
+			}
+			// update the players current field
+
+			gamer.CurrentFieldID = currentField + dicedNumber;
+			Debug.Log ("ForwardsWant is " + gamer.CurrentFieldID);
+
+			if (field[gamer.CurrentFieldID].Type == FieldType.Finish) {
+				gamer.HasFinished = true;
+				winner.Add (gamer);
+
+				if (stopWhenFirstPlayerHasFinished) {
+					isGameOver = true;
+				}
+				else {
+					isGameOver = IsGameOver ();
+				}
+				yield return new WaitForSeconds (0.25f);
+			}
+		}
+
+		// wait a little
+		yield return new WaitForSeconds (0.1f);
+		isGamerMoving = false;
+
+		yield return 0;
+	}
+
+	// Move the current Player to the target Position field by field
 	IEnumerator moveForwards(Player gamer, int dicedNumber)
 	{
 		isGamerMoving = true;
@@ -304,14 +366,14 @@ public class GameController : MonoBehaviour
 		// get the field the player is currently on
 		int currentField = gamer.CurrentFieldID;
 
-		if(currentField + dicedNumber < field.Count)
-		{
+		if(currentField + dicedNumber < field.Count){
+			float t = 1f;
+			
 			// if diced a 4 loop 4 times
-			for(int i = 0; i < dicedNumber; i++)
-			{
-				if(moveSound != null)
-					GetComponent<AudioSource>().PlayOneShot(moveSound);
-
+			/*
+			for (int i = 0; i < dicedNumber; i++) {
+				if (moveSound != null)
+					GetComponent<AudioSource> ().PlayOneShot (moveSound);
 				float t = 0f;
 
 				// increase the start- and endposition each iteration
@@ -322,34 +384,72 @@ public class GameController : MonoBehaviour
 				Vector3 endPosition = field[(currentField + i + 1)].transform.position + playerSlots[gamer.ID];
 
 				// lerp to the next field
-				while(t < 1f)
-				{
+				//while (t < 1f) {
 					t += Time.deltaTime * 4f;
+					//Debug.Log ("GOGO");
 
 					gamer.transform.position = Vector3.Lerp (startPosition, endPosition, t);
 
-					yield return null;
+				//	yield return null;
+				//}
+				//yield return null;
 				}
-				yield return null;
-			}
-			// update the players current field
-			gamer.CurrentFieldID = currentField + dicedNumber;
+				*/
 
-			if(field[gamer.CurrentFieldID].Type == FieldType.Finish)
-			{
-				gamer.HasFinished = true;
-				winner.Add (gamer);
+				// update the players current field
+				Vector3 startPosition = field[gamer.CurrentFieldID].transform.position;
 
-				if(stopWhenFirstPlayerHasFinished)
-				{
-					isGameOver = true;
+				gamer.CurrentFieldID = currentField + dicedNumber;
+				Debug.Log ("Check is" + gamer.CurrentFieldID);
+
+				//3사에서 지름길 벗어남
+				if ((gamer.CurrentFieldID >= 40) && (gamer.CurrentFieldID <= 45)) {
+					gamer.CurrentFieldID = gamer.CurrentFieldID - 39 + 24;
+					Debug.Log ("1 Case" + gamer.CurrentFieldID);
+					//Debug.Log ("move new" + gamer.CurrentFieldID);
 				}
-				else
-				{
-					isGameOver = IsGameOver();
+				//2사에서 중앙에 도착
+				else if (gamer.CurrentFieldID == 49) {
+					gamer.CurrentFieldID = 36;
+					Debug.Log ("2 Case" + gamer.CurrentFieldID);
 				}
-				yield return new WaitForSeconds(0.25f);
-			}
+				//2사에서 중앙 도착 실패
+				else if ((gamer.CurrentFieldID >= 49) && (gamer.CurrentFieldID <= 54)) {
+					gamer.CurrentFieldID = gamer.CurrentFieldID - 48 + 36;
+					Debug.Log ("3 Case" + gamer.CurrentFieldID);
+				}
+				//4사에서 게임 종료
+				else if ((gamer.CurrentFieldID >= 63)) {
+					Debug.Log ("4 Case" + gamer.CurrentFieldID);
+					gamer.HasFinished = true;
+					winner.Add (gamer);
+
+					if (stopWhenFirstPlayerHasFinished) {
+						isGameOver = true;
+					}
+					else {
+						isGameOver = IsGameOver ();
+					}
+					yield return new WaitForSeconds (0.25f);
+				}
+
+				if (field[gamer.CurrentFieldID].Type == FieldType.Finish) {
+					gamer.HasFinished = true;
+					winner.Add (gamer);
+
+					if (stopWhenFirstPlayerHasFinished) {
+						isGameOver = true;
+					}
+					else {
+						isGameOver = IsGameOver ();
+					}
+					yield return new WaitForSeconds (0.25f);
+				}
+				Vector3 endPosition = field[gamer.CurrentFieldID].transform.position;
+				t += Time.deltaTime * 4f;
+				gamer.transform.position = Vector3.Lerp (startPosition, endPosition, t);
+
+			//} //for
 		}
 
 		// wait a little
@@ -396,8 +496,7 @@ public class GameController : MonoBehaviour
 	}
 
 	// Perform an Action like Dice again, go ahead n fields, go to jail etc.
-	IEnumerator performAction()
-	{
+	IEnumerator performAction(){
 		while(isGamerMoving)
 			yield return new WaitForSeconds(0.01f);
 
@@ -409,15 +508,14 @@ public class GameController : MonoBehaviour
 		Field f = field[currentField];
 		Player p = player[currentPlayer].GetComponent<Player>();
 
-		if(totalDicedNumber == 6 * dice.Count)
-		{
-			if(diceAgainWhenDicedSix)
-			{
+		if(totalDicedNumber == 6 * dice.Count){
+			if(diceAgainWhenDicedSix){
 				diceAgain = true;
 			}
 		}
-		else if(f.Type == FieldType.Action)
-		{
+		//else if(f.Type == FieldType.Action)
+		
+		if(f.Type == FieldType.Action){
 			// perform the action of the field
 			switch(f.Action)
 			{
@@ -443,19 +541,17 @@ public class GameController : MonoBehaviour
 				int target = f.GotoField;
 				
 				// determine the direction
-				if(p.CurrentFieldID > target)
-				{
+				if(p.CurrentFieldID > target){
 					// go backwards
 					int c = p.CurrentFieldID - target;
 					StartCoroutine(moveBackwards(p, -c));
 				}
-				else
-				{
+				else{
 					// go forwards
 					int c = target - p.CurrentFieldID;
-					StartCoroutine(moveForwards(p, c));
+					//StartCoroutine(moveForwards(p, c));
+					StartCoroutine (moveForwardsWant (p, c));
 				}
-				
 				break;
 				
 				// miss next turn
@@ -485,8 +581,7 @@ public class GameController : MonoBehaviour
 		}
 
 		// if can dice again
-		if(diceAgain)
-		{
+		if(diceAgain){
 			// player can dice again, simply decrease currentPlayer by one so if 
 			// NextPlayer() is called currentPlayer will be increased to be the current Player
 			currentPlayer--;
@@ -586,15 +681,12 @@ public class GameController : MonoBehaviour
 		waitForYourTurn = false;
 	}
 
-	void CheckNextPlayerHasFinished()
-	{
-		if(player[currentPlayer].HasFinished)
-		{
+	void CheckNextPlayerHasFinished(){
+		if(player[currentPlayer].HasFinished)	{
 			currentPlayer++;
 		}
 		
-		if(currentPlayer >= playerCount)
-		{
+		if(currentPlayer >= playerCount){
 			currentPlayer = 0;
 		}
 	}

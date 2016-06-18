@@ -39,7 +39,7 @@ public class SpriteDice : Dice
 			lastNumber = c;
 			
 			// increase the time to make it look like the dices getting slower over time
-			diceTime += 0.25f/diceRuns; 
+			//diceTime += 0.25f/diceRuns; // 즉시 주사위 시작
 			
 			if(GetComponent<AudioSource>().clip != null)
 				GetComponent<AudioSource>().PlayOneShot(GetComponent<AudioSource>().clip);
