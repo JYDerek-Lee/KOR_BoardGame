@@ -289,7 +289,8 @@ public class GameController : MonoBehaviour
 	}
 
 	// Move the current player by the diced Number.
-	public void Move(Player gamer, int dicedNumber){
+	public void Move(Player gamer, int dicedNumber)
+	{
 		StartCoroutine(moveForwards(gamer, dicedNumber));
 		StartCoroutine(performAction());
 	}
@@ -358,14 +359,15 @@ public class GameController : MonoBehaviour
 	}
 
 	// Move the current Player to the target Position field by field
-	IEnumerator moveForwards(Player gamer, int dicedNumber){
+	IEnumerator moveForwards(Player gamer, int dicedNumber)
+	{
 		isGamerMoving = true;
 
 		// get the field the player is currently on
 		int currentField = gamer.CurrentFieldID;
 
-		//if(currentField + dicedNumber < field.Count){
-			float t = 2f;
+		if(currentField + dicedNumber < field.Count){
+			float t = 1f;
 			
 			// if diced a 4 loop 4 times
 			/*
@@ -398,26 +400,26 @@ public class GameController : MonoBehaviour
 				Vector3 startPosition = field[gamer.CurrentFieldID].transform.position;
 
 				gamer.CurrentFieldID = currentField + dicedNumber;
-				Debug.Log ("Frist your pos is " + gamer.CurrentFieldID);
+				Debug.Log ("Check is" + gamer.CurrentFieldID);
 
 				//3사에서 지름길 벗어남
-				if ((gamer.CurrentFieldID >= 44) && (gamer.CurrentFieldID <= 49)) {
-					gamer.CurrentFieldID = gamer.CurrentFieldID - 43 + 24;
+				if ((gamer.CurrentFieldID >= 40) && (gamer.CurrentFieldID <= 45)) {
+					gamer.CurrentFieldID = gamer.CurrentFieldID - 39 + 24;
 					Debug.Log ("1 Case" + gamer.CurrentFieldID);
-					//Debug.Log ("move new" + gamer.CurrentFieldID); 
+					//Debug.Log ("move new" + gamer.CurrentFieldID);
 				}
 				//2사에서 중앙에 도착
-				else if (gamer.CurrentFieldID == 53) {
-					gamer.CurrentFieldID = 40;
+				else if (gamer.CurrentFieldID == 49) {
+					gamer.CurrentFieldID = 36;
 					Debug.Log ("2 Case" + gamer.CurrentFieldID);
 				}
 				//2사에서 중앙 도착 실패
-				else if ((gamer.CurrentFieldID >= 53) && (gamer.CurrentFieldID <= 58)) {
-					gamer.CurrentFieldID = gamer.CurrentFieldID - 52 + 42;
+				else if ((gamer.CurrentFieldID >= 49) && (gamer.CurrentFieldID <= 54)) {
+					gamer.CurrentFieldID = gamer.CurrentFieldID - 48 + 36;
 					Debug.Log ("3 Case" + gamer.CurrentFieldID);
 				}
-				//4사에서 게임 종료 / 그냥 종료
-				else if ((gamer.CurrentFieldID >= 63) || ((gamer.CurrentFieldID >= 31) && (gamer.CurrentFieldID <=36)) ) {
+				//4사에서 게임 종료
+				else if ((gamer.CurrentFieldID >= 63)) {
 					Debug.Log ("4 Case" + gamer.CurrentFieldID);
 					gamer.HasFinished = true;
 					winner.Add (gamer);
@@ -446,13 +448,9 @@ public class GameController : MonoBehaviour
 				Vector3 endPosition = field[gamer.CurrentFieldID].transform.position;
 				t += Time.deltaTime * 4f;
 				gamer.transform.position = Vector3.Lerp (startPosition, endPosition, t);
-				Debug.Log ("Now your pos is " + gamer.CurrentFieldID + gamer.transform.position);
-				Debug.Log ("start end" + startPosition + endPosition);
-
-
 
 			//} //for
-		//}
+		}
 
 		// wait a little
 		yield return new WaitForSeconds(0.1f);
@@ -519,7 +517,8 @@ public class GameController : MonoBehaviour
 		
 		if(f.Type == FieldType.Action){
 			// perform the action of the field
-			switch(f.Action){
+			switch(f.Action)
+			{
 				// go back to start
 			case ActionType.BackToStart:
 				StartCoroutine(moveBackwards(p, p.CurrentFieldID));
@@ -550,8 +549,8 @@ public class GameController : MonoBehaviour
 				else{
 					// go forwards
 					int c = target - p.CurrentFieldID;
-					StartCoroutine(moveForwards(p, c));
-					//StartCoroutine (moveForwardsWant (p, c));
+					//StartCoroutine(moveForwards(p, c));
+					StartCoroutine (moveForwardsWant (p, c));
 				}
 				break;
 				
