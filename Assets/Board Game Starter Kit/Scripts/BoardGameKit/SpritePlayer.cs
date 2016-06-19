@@ -2,13 +2,14 @@ using UnityEngine;
 using System.Collections;
 using BoardGameKit;
 
-public class SpritePlayer : Player
-{
+public class SpritePlayer : Player{
 	int id = 0;
 	bool isHuman = true;
 	bool missNextTurn = false;
 	bool hasFinished = false;
 	bool canDiceAgain = false;
+	bool isAction = false;
+	bool isFinal = false;
 	string playerName = "Player";
 	Field field;
 	int fieldID;
@@ -82,6 +83,23 @@ public class SpritePlayer : Player
 		}
 	}
 
+	public override bool IsAction {
+		get {
+			return isAction;
+		}
+		set {
+			isAction = value;
+		}
+	}
+
+	public override bool IsFianl {
+		get {
+			return isFinal;
+		}
+		set {
+			isFinal = value;
+		}
+	}
 	public override bool CanDiceAgain 
 	{
 		get 

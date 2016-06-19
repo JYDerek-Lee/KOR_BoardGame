@@ -8,6 +8,8 @@ namespace BoardGameKit
 		public abstract int ID 				{ get; set; }
 		public abstract bool IsHuman 		{ get; set; }
 		public abstract bool MissNextTurn 	{ get; set; }
+		public abstract bool IsAction { get; set; }
+		public abstract bool IsFianl { get; set; }
 		public abstract string Name 		{ get; set; }	
 		public abstract bool HasFinished 	{ get; set; }
 		public abstract bool CanDiceAgain 	{ get; set; }

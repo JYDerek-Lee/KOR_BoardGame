@@ -36,6 +36,7 @@ public class GameController : MonoBehaviour
 	bool isGamerMoving = false;							// dont allow input as long as a player is moving
 	bool isSpawningPlayers = false;						// dont allow input as long as the players are spawning
 	bool isGameOver = false;							// is the Game Over yet?
+	//bool isAction = false;
 
 	public GUISkin skin;
 	string statusText = "";
@@ -48,16 +49,13 @@ public class GameController : MonoBehaviour
 	public AudioClip moveSound;
 
 	// Use this for initialization
-	void Start ()
-	{
+	void Start (){
 		StartCoroutine(reset ());
 	}
 
 	// Update is called once per frame
-	void Update ()
-	{
-		if(isGameOver)
-		{
+	void Update (){
+		if(isGameOver){
 			UpdateStatusText ("Game Over!\n" + winner[0].Name + " is the Winner!");
 			return;
 		}
@@ -98,8 +96,7 @@ public class GameController : MonoBehaviour
 		statusText = text;
 	}
 
-	void OnGUI()
-	{
+	void OnGUI(){
 		if(skin != null)
 			GUI.skin = skin;
 		if(showPlayerSelectionWindow)
@@ -289,9 +286,10 @@ public class GameController : MonoBehaviour
 	}
 
 	// Move the current player by the diced Number.
-	public void Move(Player gamer, int dicedNumber)
-	{
+	public void Move(Player gamer, int dicedNumber){
+		Debug.Log ("1 MOVE " + player[currentPlayer]);
 		StartCoroutine(moveForwards(gamer, dicedNumber));
+		Debug.Log ("2 Action " + player[currentPlayer]);
 		StartCoroutine(performAction());
 	}
 
@@ -336,6 +334,7 @@ public class GameController : MonoBehaviour
 
 			gamer.CurrentFieldID = currentField + dicedNumber;
 			Debug.Log ("ForwardsWant is " + gamer.CurrentFieldID);
+			player[currentPlayer].IsAction = true;
 
 			if (field[gamer.CurrentFieldID].Type == FieldType.Finish) {
 				gamer.HasFinished = true;
@@ -359,8 +358,7 @@ public class GameController : MonoBehaviour
 	}
 
 	// Move the current Player to the target Position field by field
-	IEnumerator moveForwards(Player gamer, int dicedNumber)
-	{
+	IEnumerator moveForwards(Player gamer, int dicedNumber){
 		isGamerMoving = true;
 
 		// get the field the player is currently on
@@ -400,26 +398,35 @@ public class GameController : MonoBehaviour
 				Vector3 startPosition = field[gamer.CurrentFieldID].transform.position;
 
 				gamer.CurrentFieldID = currentField + dicedNumber;
-				Debug.Log ("Check is" + gamer.CurrentFieldID);
+				Debug.Log ("First Pos is" + gamer.CurrentFieldID);
+
+				if (player[currentPlayer].IsAction == true) {
+					gamer.CurrentFieldID -= 1;
+					player[currentPlayer].IsAction = false;
+				}
+
+				if ((gamer.CurrentFieldID >= 25) && (gamer.CurrentFieldID <= 30)) {
+					player[currentPlayer].IsFianl = true;
+				}
 
 				//3사에서 지름길 벗어남
-				if ((gamer.CurrentFieldID >= 40) && (gamer.CurrentFieldID <= 45)) {
+				if ((gamer.CurrentFieldID >= 39) && (gamer.CurrentFieldID <= 44)) {
 					gamer.CurrentFieldID = gamer.CurrentFieldID - 39 + 24;
 					Debug.Log ("1 Case" + gamer.CurrentFieldID);
 					//Debug.Log ("move new" + gamer.CurrentFieldID);
 				}
 				//2사에서 중앙에 도착
-				else if (gamer.CurrentFieldID == 49) {
-					gamer.CurrentFieldID = 36;
+				else if (gamer.CurrentFieldID == 48) {
+					gamer.CurrentFieldID = 35;
 					Debug.Log ("2 Case" + gamer.CurrentFieldID);
 				}
 				//2사에서 중앙 도착 실패
-				else if ((gamer.CurrentFieldID >= 49) && (gamer.CurrentFieldID <= 54)) {
+				else if ((gamer.CurrentFieldID >= 48) && (gamer.CurrentFieldID <= 53)) {
 					gamer.CurrentFieldID = gamer.CurrentFieldID - 48 + 36;
 					Debug.Log ("3 Case" + gamer.CurrentFieldID);
 				}
 				//4사에서 게임 종료
-				else if ((gamer.CurrentFieldID >= 63)) {
+				else if ((gamer.CurrentFieldID >= 56) || ((gamer.CurrentFieldID >= 31) && (player[currentPlayer].IsFianl == true)) ) {
 					Debug.Log ("4 Case" + gamer.CurrentFieldID);
 					gamer.HasFinished = true;
 					winner.Add (gamer);
@@ -448,6 +455,9 @@ public class GameController : MonoBehaviour
 				Vector3 endPosition = field[gamer.CurrentFieldID].transform.position;
 				t += Time.deltaTime * 4f;
 				gamer.transform.position = Vector3.Lerp (startPosition, endPosition, t);
+				Debug.Log ("Final Pos is" + gamer.CurrentFieldID);
+				Debug.Log ("SP " +startPosition + "EP " + endPosition);
+
 
 			//} //for
 		}
@@ -513,9 +523,9 @@ public class GameController : MonoBehaviour
 				diceAgain = true;
 			}
 		}
-		//else if(f.Type == FieldType.Action)
+		else if(f.Type == FieldType.Action){ // Normal
 		
-		if(f.Type == FieldType.Action){
+		//if(f.Type == FieldType.Action){
 			// perform the action of the field
 			switch(f.Action)
 			{
@@ -596,8 +606,7 @@ public class GameController : MonoBehaviour
 	}
 
 	// shows a selection Window and sends the selected Player back to the Start Field
-	IEnumerator sendPlayerBackToStart()
-	{
+	IEnumerator sendPlayerBackToStart(){
 		isGamerMoving = true;
 
 		selectedPlayer = -1;
