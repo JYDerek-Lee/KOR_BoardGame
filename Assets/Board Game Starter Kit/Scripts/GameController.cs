@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using BoardGameKit;
 
-public class GameController : MonoBehaviour
-{
+
+
+public class GameController : MonoBehaviour{
 	[Range(1, 2)]
 	public int playerCount; 
 	[Range(0, 1)]
@@ -22,7 +23,8 @@ public class GameController : MonoBehaviour
 	int currentPlayer = 0;
 	int selectedPlayer = -1;  							// for the Player selection Screen if one can choose a Player to send back to start
 	int totalDicedNumber = 0; 							// the total number of all Dices
-	int dicesFinished = 0; 								// this have to match dice.Count before the Player can Move
+	int dicesFinished = 0;
+	// this have to match dice.Count before the Player can Move
 	List<Dice> dice = new List<Dice>();					// a List holding all the Dices
 	List<Player> player = new List<Player>();			// a List holding all the Players
 	List<Field> field = new List<Field>();				// a List holding all Fields
@@ -287,7 +289,7 @@ public class GameController : MonoBehaviour
 
 	// Move the current player by the diced Number.
 	public void Move(Player gamer, int dicedNumber){
-		Debug.Log ("1 MOVE " + player[currentPlayer]);
+		Debug.Log ("1 MOVE " + player[currentPlayer] + currentPlayer);
 		StartCoroutine(moveForwards(gamer, dicedNumber));
 		Debug.Log ("2 Action " + player[currentPlayer]);
 		StartCoroutine(performAction());
@@ -622,13 +624,16 @@ public class GameController : MonoBehaviour
 			while(isGamerMoving)
 				yield return new WaitForSeconds(0.01f);
 		}
-		Debug.Log ("Action is " + f.Action);
 
+		Debug.Log ("Action is " + f.Action);
+		StartCoroutine (checkGoBackToStart (p));
+		diceAgain = p.CanDiceAgain;
 		// if can dice again
 		if(diceAgain){
 			// player can dice again, simply decrease currentPlayer by one so if 
 			// NextPlayer() is called currentPlayer will be increased to be the current Player
 			currentPlayer--;
+			p.CanDiceAgain = false;
 		}
 
 		while(isGamerMoving)
@@ -639,6 +644,46 @@ public class GameController : MonoBehaviour
 		NextPlayer();
 	}
 
+	IEnumerator checkGoBackToStart (Player nowGamer) {
+		float t = 1f;
+		int prePlayer = 0;
+		isGamerMoving = true;
+
+		if (currentPlayer == 0) {
+			prePlayer = 1;
+		}
+		else if (currentPlayer == 1) {
+			prePlayer = 0;
+		}
+
+		Player preGamer = player[prePlayer].GetComponent<Player> ();
+		Vector3 startPosition = field[preGamer.CurrentFieldID].transform.position;
+
+		if (nowGamer.CurrentFieldID != 0) {
+			if (nowGamer.CurrentFieldID == preGamer.CurrentFieldID) {
+				preGamer.CurrentFieldID = 0;
+				player[prePlayer].ActionNum = 0;
+				player[prePlayer].IsAction = false;
+				player[prePlayer].IsFianl = false;
+
+				player[currentPlayer].CanDiceAgain = true;
+
+				Debug.Log ("checkGoBackToStart is Operated");
+			}
+			else {
+				Debug.Log ("checkGoBackToStart is None");
+			}
+		}
+
+		Vector3 endPosition = field[preGamer.CurrentFieldID].transform.position;
+		t += Time.deltaTime * 4f;
+		preGamer.transform.position = Vector3.Lerp (startPosition, endPosition, t);
+
+		yield return new WaitForSeconds (0.01f);
+		isGamerMoving = false;
+
+	}
+
 	// shows a selection Window and sends the selected Player back to the Start Field
 	IEnumerator sendPlayerBackToStart(){
 		isGamerMoving = true;
@@ -646,8 +691,7 @@ public class GameController : MonoBehaviour
 		selectedPlayer = -1;
 		selectablePlayer.Clear();
 
-		foreach(Player g in player)
-		{
+		foreach(Player g in player){
 			// dont allow players who sit at the start or has finished 
 			// also dont allow to send yourself back to start
 			if(g.ID != player[currentPlayer].ID && g.CurrentFieldID != 0 && !g.HasFinished)
@@ -658,16 +702,13 @@ public class GameController : MonoBehaviour
 
 		yield return new WaitForSeconds(0.1f);
 
-		if(selectablePlayer.Count > 0)
-		{
+		if(selectablePlayer.Count > 0){
 			// if its a Human Player show selection Screen otherwise just choose a random Player
-			if(player[currentPlayer].IsHuman)
-			{
+			if(player[currentPlayer].IsHuman){
 				playerSelectionWindowRect = new Rect(64, 64, 192, (selectablePlayer.Count) * 32 + 32 + 16);
 				showPlayerSelectionWindow = true;
 			}
-			else
-			{
+			else{
 				selectedPlayer = selectablePlayer[Random.Range (0, selectablePlayer.Count)].ID;
 			}
 
@@ -688,17 +729,14 @@ public class GameController : MonoBehaviour
 			while(isGamerMoving)
 				yield return new WaitForSeconds(0.1f);
 		}
-		else
-		{
+		else{
 			yield return new WaitForSeconds(0.1f);
 			isGamerMoving = false;
 		}
 	}
 
-	bool IsGameOver()
-	{
-		foreach(Player g in player)
-		{
+	bool IsGameOver(){
+		foreach(Player g in player){
 			if(!g.HasFinished)
 				return false;
 		}
@@ -707,14 +745,12 @@ public class GameController : MonoBehaviour
 	}
 
 	// Simply swaps to the next Player
-	void NextPlayer()
-	{
+	void NextPlayer(){
 		if(isGameOver)
 			return;
 
 		currentPlayer++;
-		if(currentPlayer >= playerCount)
-		{
+		if(currentPlayer >= playerCount){
 			currentPlayer = 0;
 		}
 
@@ -735,16 +771,13 @@ public class GameController : MonoBehaviour
 	}
 
 	// Checks if the next Player misses the next turn and if so swaps to the next player
-	void CheckNextPlayerMissNextTurn()
-	{
-		if(player[currentPlayer].MissNextTurn)
-		{
+	void CheckNextPlayerMissNextTurn(){
+		if(player[currentPlayer].MissNextTurn){
 			player[currentPlayer].MissNextTurn = false;
 			currentPlayer++;
 		}
 		
-		if(currentPlayer >= playerCount)
-		{
+		if(currentPlayer >= playerCount){
 			currentPlayer = 0;
 		}
 	}
