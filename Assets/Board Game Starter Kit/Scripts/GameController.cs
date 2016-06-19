@@ -333,8 +333,27 @@ public class GameController : MonoBehaviour
 			// update the players current field
 
 			gamer.CurrentFieldID = currentField + dicedNumber;
-			Debug.Log ("ForwardsWant is " + gamer.CurrentFieldID);
+			Debug.Log ("F/ ForwardsWant is " + gamer.CurrentFieldID + "and Num is " + player[currentPlayer].ActionNum);
 			player[currentPlayer].IsAction = true;
+
+			//actionNum 부여
+			//밖에서 1사분면 이동
+			if (gamer.CurrentFieldID == 32 && (player[currentPlayer].ActionNum == 0)) {
+				player[currentPlayer].ActionNum = 1;
+			}
+			//밖에서 2사분면 이동
+			else if (gamer.CurrentFieldID == 39 && (player[currentPlayer].ActionNum==0)) {
+				player[currentPlayer].ActionNum = 2;
+			}
+			//1,2사분면에서 4사분면으로 이동, 3사분면으로 이동
+			else if ((player[currentPlayer].ActionNum==1) | (player[currentPlayer].ActionNum==2)) {
+				if (gamer.CurrentFieldID == 35 | gamer.CurrentFieldID == 42) {
+					player[currentPlayer].ActionNum = 4;
+				}
+				else if (gamer.CurrentFieldID >= 36) {
+					player[currentPlayer].ActionNum = 3;
+				}
+			}
 
 			if (field[gamer.CurrentFieldID].Type == FieldType.Finish) {
 				gamer.HasFinished = true;
@@ -348,6 +367,7 @@ public class GameController : MonoBehaviour
 				}
 				yield return new WaitForSeconds (0.25f);
 			}
+			Debug.Log ("E/ ForwardsWant is " + gamer.CurrentFieldID + "and Num is " + player[currentPlayer].ActionNum);
 		}
 
 		// wait a little
@@ -364,7 +384,7 @@ public class GameController : MonoBehaviour
 		// get the field the player is currently on
 		int currentField = gamer.CurrentFieldID;
 
-		if(currentField + dicedNumber < field.Count){
+		//if(currentField + dicedNumber < field.Count){
 			float t = 1f;
 			
 			// if diced a 4 loop 4 times
@@ -395,72 +415,86 @@ public class GameController : MonoBehaviour
 				*/
 
 				// update the players current field
-				Vector3 startPosition = field[gamer.CurrentFieldID].transform.position;
+			Vector3 startPosition = field[gamer.CurrentFieldID].transform.position;
 
-				gamer.CurrentFieldID = currentField + dicedNumber;
-				Debug.Log ("First Pos is" + gamer.CurrentFieldID);
+			gamer.CurrentFieldID = currentField + dicedNumber;
+			Debug.Log ("F/ Pos is " + gamer.CurrentFieldID + "and Num is " + player[currentPlayer].ActionNum);
 
-				if (player[currentPlayer].IsAction == true) {
-					gamer.CurrentFieldID -= 1;
-					player[currentPlayer].IsAction = false;
+			//Action 발생시 한칸 뺵
+			if (player[currentPlayer].IsAction == true) {
+				gamer.CurrentFieldID -= 1;
+				player[currentPlayer].IsAction = false;
+			}
+			//종료 라인
+			if ((gamer.CurrentFieldID >= 25) && (gamer.CurrentFieldID <= 30)) {
+				player[currentPlayer].IsFianl = true;
+			}
+
+
+			//2사에서 중앙에 도착
+			if (gamer.CurrentFieldID == 42 && (player[currentPlayer].ActionNum == 2)) {
+				gamer.CurrentFieldID = 35;
+				player[currentPlayer].ActionNum = 4;
+				Debug.Log ("1 Case" + gamer.CurrentFieldID);
+			}
+			//2사에서 중앙 도착 실패
+			else if ((gamer.CurrentFieldID >= 42) && (gamer.CurrentFieldID <= 47) && (player[currentPlayer].ActionNum == 2)) {
+				//2사에서 한방에 3사까지 탈출
+				if (gamer.CurrentFieldID >= 46) {
+					gamer.CurrentFieldID = gamer.CurrentFieldID - 42 + 24;
+					player[currentPlayer].ActionNum = 0;
 				}
-
-				if ((gamer.CurrentFieldID >= 25) && (gamer.CurrentFieldID <= 30)) {
-					player[currentPlayer].IsFianl = true;
+				//3사로 이동
+				else {
+					gamer.CurrentFieldID = gamer.CurrentFieldID - 42 + 35;
+					player[currentPlayer].ActionNum = 3;
 				}
-
-				//3사에서 지름길 벗어남
-				if ((gamer.CurrentFieldID >= 39) && (gamer.CurrentFieldID <= 44)) {
+				Debug.Log ("2 Case" + gamer.CurrentFieldID);
+			}
+			//3사에서 지름길 벗어남
+			else if ((gamer.CurrentFieldID >= 39) && (gamer.CurrentFieldID <= 44)) {
+				if ((player[currentPlayer].ActionNum == 1) | (player[currentPlayer].ActionNum == 3)) {
 					gamer.CurrentFieldID = gamer.CurrentFieldID - 39 + 24;
-					Debug.Log ("1 Case" + gamer.CurrentFieldID);
+					player[currentPlayer].ActionNum = 0;
+					Debug.Log ("3 Case" + gamer.CurrentFieldID);
 					//Debug.Log ("move new" + gamer.CurrentFieldID);
 				}
-				//2사에서 중앙에 도착
-				else if (gamer.CurrentFieldID == 48) {
-					gamer.CurrentFieldID = 35;
-					Debug.Log ("2 Case" + gamer.CurrentFieldID);
-				}
-				//2사에서 중앙 도착 실패
-				else if ((gamer.CurrentFieldID >= 48) && (gamer.CurrentFieldID <= 53)) {
-					gamer.CurrentFieldID = gamer.CurrentFieldID - 48 + 36;
-					Debug.Log ("3 Case" + gamer.CurrentFieldID);
-				}
-				//4사에서 게임 종료
-				else if ((gamer.CurrentFieldID >= 56) || ((gamer.CurrentFieldID >= 31) && (player[currentPlayer].IsFianl == true)) ) {
-					Debug.Log ("4 Case" + gamer.CurrentFieldID);
-					gamer.HasFinished = true;
-					winner.Add (gamer);
+			}
+			//4사에서 게임 종료, 마지막 라인에서 게임종료
+			else if ((gamer.CurrentFieldID >= 56) || ((gamer.CurrentFieldID >= 31) && (player[currentPlayer].IsFianl == true)) ) {
+				Debug.Log ("4 Case" + gamer.CurrentFieldID);
+				gamer.HasFinished = true;
+				winner.Add (gamer);
 
-					if (stopWhenFirstPlayerHasFinished) {
-						isGameOver = true;
-					}
-					else {
-						isGameOver = IsGameOver ();
-					}
-					yield return new WaitForSeconds (0.25f);
+				if (stopWhenFirstPlayerHasFinished) {
+					isGameOver = true;
 				}
-
-				if (field[gamer.CurrentFieldID].Type == FieldType.Finish) {
-					gamer.HasFinished = true;
-					winner.Add (gamer);
-
-					if (stopWhenFirstPlayerHasFinished) {
-						isGameOver = true;
-					}
-					else {
-						isGameOver = IsGameOver ();
-					}
-					yield return new WaitForSeconds (0.25f);
+				else {
+					isGameOver = IsGameOver ();
 				}
-				Vector3 endPosition = field[gamer.CurrentFieldID].transform.position;
-				t += Time.deltaTime * 4f;
-				gamer.transform.position = Vector3.Lerp (startPosition, endPosition, t);
-				Debug.Log ("Final Pos is" + gamer.CurrentFieldID);
-				Debug.Log ("SP " +startPosition + "EP " + endPosition);
+				yield return new WaitForSeconds (0.25f);
+			}
+
+			if (field[gamer.CurrentFieldID].Type == FieldType.Finish) {
+				gamer.HasFinished = true;
+				winner.Add (gamer);
+
+				if (stopWhenFirstPlayerHasFinished) {
+					isGameOver = true;
+				}
+				else {
+					isGameOver = IsGameOver ();
+				}
+				yield return new WaitForSeconds (0.25f);
+			}
+			Vector3 endPosition = field[gamer.CurrentFieldID].transform.position;
+			t += Time.deltaTime * 4f;
+			gamer.transform.position = Vector3.Lerp (startPosition, endPosition, t);
+			Debug.Log ("E/ Pos is " + gamer.CurrentFieldID + "and Num is " + player[currentPlayer].ActionNum);
 
 
 			//} //for
-		}
+		//}
 
 		// wait a little
 		yield return new WaitForSeconds(0.1f);
@@ -527,8 +561,7 @@ public class GameController : MonoBehaviour
 		
 		//if(f.Type == FieldType.Action){
 			// perform the action of the field
-			switch(f.Action)
-			{
+			switch(f.Action){
 				// go back to start
 			case ActionType.BackToStart:
 				StartCoroutine(moveBackwards(p, p.CurrentFieldID));
@@ -589,6 +622,7 @@ public class GameController : MonoBehaviour
 			while(isGamerMoving)
 				yield return new WaitForSeconds(0.01f);
 		}
+		Debug.Log ("Action is " + f.Action);
 
 		// if can dice again
 		if(diceAgain){

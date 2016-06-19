@@ -4,6 +4,7 @@ using BoardGameKit;
 
 public class SpritePlayer : Player{
 	int id = 0;
+	int actionNum = 0;
 	bool isHuman = true;
 	bool missNextTurn = false;
 	bool hasFinished = false;
@@ -35,6 +36,14 @@ public class SpritePlayer : Player{
 		}
 	}
 
+	public override int ActionNum {
+		get {
+			return actionNum;
+		}
+		set {
+			actionNum = value;
+		}
+	}
 	public override bool IsHuman 
 	{
 		get 

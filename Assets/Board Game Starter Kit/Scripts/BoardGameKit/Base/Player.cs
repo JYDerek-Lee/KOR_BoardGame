@@ -6,6 +6,7 @@ namespace BoardGameKit
 	public abstract class Player : MonoBehaviour
 	{
 		public abstract int ID 				{ get; set; }
+		public abstract int ActionNum { get; set; }
 		public abstract bool IsHuman 		{ get; set; }
 		public abstract bool MissNextTurn 	{ get; set; }
 		public abstract bool IsAction { get; set; }
